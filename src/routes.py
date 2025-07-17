@@ -4,16 +4,21 @@ from models import db, User, People, Planet, Favorite
 api = Blueprint('api', __name__)
 
 
+@api.route('/people/<int:people_id>', methods=['GET'])
+def get_person(people_id):
+    print('mensaje')
+    person = People.query.get(people_id)
+
+    if person == None:
+        return jsonify({"msg": "Person not exist"}), 200
+    else:
+        return jsonify({"id": person.id, "name": person.name}), 200
+
+
 @api.route('/people', methods=['GET'])
 def get_people():
     people = People.query.all()
     return jsonify([{"id": p.id, "name": p.name} for p in people]), 200
-
-
-@api.route('/people/<int:people_id>', methods=['GET'])
-def get_person(people_id):
-    person = People.query.get_or_404(people_id)
-    return jsonify({"id": person.id, "name": person.name}), 200
 
 
 @api.route('/planets', methods=['GET'])
@@ -24,8 +29,12 @@ def get_planets():
 
 @api.route('/planets/<int:planet_id>', methods=['GET'])
 def get_planet(planet_id):
-    planet = Planet.query.get_or_404(planet_id)
-    return jsonify({"id": planet.id, "name": planet.name}), 200
+    planet = Planet.query.get(planet_id)
+
+    if planet == None:
+        return jsonify({"msg": "planet not exist"}), 200
+    else:
+        return jsonify({"id": planet.id, "name": planet.name}), 200
 
 
 @api.route('/users', methods=['GET'])
@@ -39,7 +48,7 @@ def get_user_favorites():
     # Simulación de usuario actual (id=1)
     user = User.query.get(1)
     if not user:
-        return jsonify({"msg": "User not found"}), 404
+        return jsonify({"msg": "User not found"}), 200
     favorites = []
     for fav in user.favorites:
         if fav.people_id:
@@ -53,7 +62,7 @@ def get_user_favorites():
 def add_favorite_planet(planet_id):
     user = User.query.get(1)
     if not user:
-        return jsonify({"msg": "User not found"}), 404
+        return jsonify({"msg": "User not found"}), 200
     favorite = Favorite(user_id=user.id, planet_id=planet_id)
     db.session.add(favorite)
     db.session.commit()
@@ -64,7 +73,7 @@ def add_favorite_planet(planet_id):
 def add_favorite_people(people_id):
     user = User.query.get(1)
     if not user:
-        return jsonify({"msg": "User not found"}), 404
+        return jsonify({"msg": "User not found"}), 200
     favorite = Favorite(user_id=user.id, people_id=people_id)
     db.session.add(favorite)
     db.session.commit()
@@ -74,6 +83,8 @@ def add_favorite_people(people_id):
 @api.route('/favorite/planet/<int:planet_id>', methods=['DELETE'])
 def delete_favorite_planet(planet_id):
     user = User.query.get(1)
+    if user == None:
+        return jsonify({"msg": "User not found"}), 200
     favorite = Favorite.query.filter_by(
         user_id=user.id, planet_id=planet_id).first()
     if not favorite:
@@ -86,6 +97,8 @@ def delete_favorite_planet(planet_id):
 @api.route('/favorite/people/<int:people_id>', methods=['DELETE'])
 def delete_favorite_people(people_id):
     user = User.query.get(1)
+    if user == None:
+        return jsonify({"msg": "User not found"}), 200
     favorite = Favorite.query.filter_by(
         user_id=user.id, people_id=people_id).first()
     if not favorite:
